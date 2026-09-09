@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Zoom & Absensi - Kelas XI RPL</title>
+    
+    <!-- CSS (GAYA TAMPILAN) -->
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+
+        .sub-title {
+            color: #666;
+            margin-top: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* Form Input */
+        form {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #0e71eb; /* Warna Khas Zoom */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: #0b5cbe;
+        }
+
+        /* Tampilan Zoom Grid */
+        .zoom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 150px;
+        }
+
+        .user-box {
+            background-color: #2d2d2d;
+            color: white;
+            height: 120px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border: 3px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        /* Efek saat peserta sudah absen/hadir */
+        .user-box.hadir {
+            border-color: #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+        }
+
+        .user-avatar {
+            font-size: 35px;
+            margin-bottom: 5px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            padding: 0 5px;
+            word-break: break-word;
+        }
+
+        .badge-status {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background-color: #e74c3c;
+        }
+
+        .user-box.hadir .badge-status {
+            background-color: #2ecc71;
+        }
+
+        /* Tabel Rekap */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+
+        .status-hadir {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-belum {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .btn-absen {
+            background-color: #27ae60;
+            font-weight: normal;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .btn-batal {
+            background-color: #f39c12;
+            font-weight: normal;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            font-weight: normal;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Simulasi Zoom & Absensi</h1>
+        <p class="sub-title">Materi Praktikum XI RPL - HTML, CSS, JS, LocalStorage</p>
+    </header>
+
+    <div class="container">
+        <!-- 1. FORM TAMBAH PESERTA -->
+        <section class="card">
+            <h2>1. Tambah Peserta Baru</h2>
+            <form id="form-peserta">
+                <input type="text" id="input-nama" placeholder="Masukkan nama peserta..." required>
+                <button type="submit">Tambah Peserta</button>
+            </form>
+        </section>
+
+        <!-- 2. SIMULASI RUANG ZOOM -->
+        <section class="card">
+            <h2>2. Ruang Utama Zoom</h2>
+            <div id="zoom-grid" class="zoom-grid">
+                <!-- Box Kamera Peserta Muncul Di Sini -->
+            </div>
+        </section>
+
+        <!-- 3. REKAP ABSENSI -->
+        <section class="card">
+            <h2>3. Rekap Kehadiran Peserta</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">No</th>
+                        <th>Nama Peserta</th>
+                        <th>Status Kehadiran</th>
+                        <th style="width: 180px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabel-rekap">
+                    <!-- Data Baris Tabel Muncul Di Sini -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- JAVASCRIPT (LOGIKA APLIKASI) -->
+    <script>
+        // ========================================================
+        // 1. STATE / DATA APLIKASI (Diambil dari LocalStorage)
+        // ========================================================
+        let daftarPeserta = JSON.parse(localStorage.getItem('pesertaZoom')) || [];
+
+        // ========================================================
+        // 2. SELEKSI ELEMEN DOM
+        // ========================================================
+        const formPeserta = document.getElementById('form-peserta');
+        const inputNama = document.getElementById('input-nama');
+        const zoomGrid = document.getElementById('zoom-grid');
+        const tabelRekap = document.getElementById('tabel-rekap');
+
+        // ========================================================
+        // 3. FUNGSI SIMPAN KE LOCALSTORAGE
+        // ========================================================
+        function simpanKeLocalStorage() {
+            localStorage.setItem('pesertaZoom', JSON.stringify(daftarPeserta));
+        }
+
+        // ========================================================
+        // 4. FUNGSI RENDER TAMPILAN (Daftar & Zoom Grid)
+        // ========================================================
+        function renderUI() {
+            // Bersihkan tampilan lama sebelum digambar ulang
+            zoomGrid.innerHTML = '';
+            tabelRekap.innerHTML = '';
+
+            // Jika belum ada peserta
+            if (daftarPeserta.length === 0) {
+                zoomGrid.innerHTML = '<p style="color:#aaa; text-align:center; width:100%; grid-column: 1/-1;">Belum ada peserta di ruang Zoom.</p>';
+                tabelRekap.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888;">Data peserta masih kosong.</td></tr>';
+                return;
+            }
+
+            // Loop seluruh data peserta
+            daftarPeserta.forEach((peserta, index) => {
+                
+                // A. RENDER KOTAK ZOOM (VIDEO BOX)
+                const userBox = document.createElement('div');
+                userBox.className = `user-box ${peserta.hadir ? 'hadir' : ''}`;
+                userBox.innerHTML = `
+                    <span class="badge-status">${peserta.hadir ? 'Hadir' : 'OFF'}</span>
+                    <div class="user-avatar">👤</div>
+                    <div class="user-name">${peserta.nama}</div>
+                `;
+                zoomGrid.appendChild(userBox);
+
+                // B. RENDER BARIS TABEL REKAP ABSENSI
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${peserta.nama}</strong></td>
+                    <td>
+                        <span class="${peserta.hadir ? 'status-hadir' : 'status-belum'}">
+                            ${peserta.hadir ? '✓ Hadir' : '✗ Belum Absen'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="${peserta.hadir ? 'btn-batal' : 'btn-absen'}" onclick="toggleAbsen(${index})">
+                            ${peserta.hadir ? 'Batal' : 'Absen'}
+                        </button>
+                        <button class="btn-delete" onclick="hapusPeserta(${index})">Hapus</button>
+                    </td>
+                `;
+                tabelRekap.appendChild(row);
+            });
+        }
+
+        // ========================================================
+        // 5. FITUR: TAMBAH PESERTA (EVENT LISTENER)
+        // ========================================================
+        formPeserta.addEventListener('submit', function(e) {
+            e.preventDefault(); // Mencegah reload halaman saat submit
+
+            const namaBaru = inputNama.value.trim();
+            if (namaBaru !== '') {
+                // Tambahkan object data baru
+                daftarPeserta.push({
+                    nama: namaBaru,
+                    hadir: false // Default belum absen
+                });
+
+                simpanKeLocalStorage();
+                renderUI();
+
+                inputNama.value = ''; // Clear input field
+                inputNama.focus();
+            }
+        });
+
+        // ========================================================
+        // 6. FITUR: ABSEN / BATAL ABSEN (TOGGLE)
+        // ========================================================
+        function toggleAbsen(index) {
+            // Membalik status boolean (true -> false, false -> true)
+            daftarPeserta[index].hadir = !daftarPeserta[index].hadir;
+            
+            simpanKeLocalStorage();
+            renderUI();
+        }
+
+        // ========================================================
+        // 7. FITUR: HAPUS PESERTA
+        // ========================================================
+        function hapusPeserta(index) {
+            if (confirm(`Yakin ingin menghapus ${daftarPeserta[index].nama}?`)) {
+                daftarPeserta.splice(index, 1); // Hapus data dari Array
+                simpanKeLocalStorage();
+                renderUI();
+            }
+        }
+
+        // Jalankan render awal saat halaman pertama kali dibuka
+        renderUI();
+    </script>
+</body>
+</html>
